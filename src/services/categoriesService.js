@@ -10,6 +10,14 @@ const getAll = async () => {
   return (categories);
 };
 
+const create = async (name) => {
+  const category = await Category.create({ name });
+  // const newCategory = { id: category.id, name: category.name };
+
+  return (category);
+};
+
 module.exports = {
   getAll,
+  create,
 };

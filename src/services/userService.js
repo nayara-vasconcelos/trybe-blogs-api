@@ -50,8 +50,16 @@ const create = async (displayName, email, password, image) => {
 };
 
 const getAll = async () => {
-  const users = await User.findAll();
-  return (users);
+  const users = await User.findAll({
+    attributes: { exclude: ['password'] },
+  });
+
+  const editedUsers = users.map((user) => {
+    const { id, displayName, email, image } = user;
+    return ({ id, displayName, email, image });
+  });
+
+  return (editedUsers);
 };
 
 module.exports = {

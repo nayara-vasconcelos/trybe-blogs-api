@@ -15,7 +15,6 @@ const invalidToken = {
 
 const validateToken = async (req, _res, next) => {
   const token = req.headers.authorization;
-  console.log('Token :', token);
   if (!token) { return next(notFoundError); }
   
   try {

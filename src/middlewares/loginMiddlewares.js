@@ -3,7 +3,6 @@ const loginSchema = require('../schemas/loginSchema');
 
 const validateLogin = (req, _res, next) => {
   const { email, password } = req.body;
-  console.log('entrou ValidateLogin');
   const { error } = loginSchema.validate({ email, password });
 
   if (error) {

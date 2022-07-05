@@ -1,12 +1,17 @@
 const jwt = require('jsonwebtoken');
 const { User } = require('../database/models');
-const { isInvalid } = require('../constants/statusCodeTypes');
+const { isInvalid, alreadyExists } = require('../constants/statusCodeTypes');
 
 const { JWT_SECRET } = process.env;
 
 const userLoginError = {
   code: isInvalid,
   message: 'Invalid fields',
+};
+
+const userRegistrationError = {
+  code: alreadyExists,
+  message: 'User already registered',
 };
 
 const generateToken = (payload) => {
@@ -27,10 +32,24 @@ const verifyLogin = async (email, password) => {
   };
 
   const token = generateToken(payload);
+  return ({ token });
+};
 
+const create = async (displayName, email, password, image) => {
+  const user = await User.findOne({ where: { email } });
+  if (user) { return ({ error: userRegistrationError }); }
+
+  const newUser = await User.create({ displayName, email, password, image });
+  const payload = {
+    id: newUser.id,
+    email,
+  };
+
+  const token = generateToken(payload);
   return ({ token });
 };
 
 module.exports = {
   verifyLogin,
+  create,
 };

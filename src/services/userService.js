@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { User } = require('../database/models');
-const { isInvalid, alreadyExists } = require('../constants/statusCodeTypes');
+const { isInvalid, alreadyExists, notFound } = require('../constants/statusCodeTypes');
 
 const { JWT_SECRET } = process.env;
 
@@ -12,6 +12,11 @@ const userLoginError = {
 const userRegistrationError = {
   code: alreadyExists,
   message: 'User already registered',
+};
+
+const userNotFoundError = {
+  code: notFound,
+  message: 'User does not exist',
 };
 
 const generateToken = (payload) => {
@@ -62,8 +67,19 @@ const getAll = async () => {
   return (editedUsers);
 };
 
+const getById = async (userId) => {
+  const user = await User.findByPk(parseInt(userId, 10));
+  if (!user) { return ({ error: userNotFoundError }); }
+
+  const { id, displayName, email, image } = user;
+  const editedUser = { id, displayName, email, image };
+
+  return (editedUser);
+};
+
 module.exports = {
   verifyLogin,
   create,
   getAll,
+  getById,
 };

@@ -1,9 +1,14 @@
 const { BlogPost, User, Category } = require('../database/models');
-const { notFound } = require('../constants/statusCodeTypes');
+const { notFound, unauthorized } = require('../constants/statusCodeTypes');
 
 const postNotFoundError = {
   code: notFound,
   message: 'Post does not exist',
+};
+
+const unauthorizedUserError = {
+  code: unauthorized,
+  message: 'Unauthorized user',
 };
 
 const getAll = async () => {
@@ -31,7 +36,21 @@ const getById = async (id) => {
   return (post);
 };
 
+const deleteById = async (postId, userId) => {
+  const post = await BlogPost.findByPk(parseInt(postId, 10));
+  if (!post) { return ({ error: postNotFoundError }); }
+  if (post.userId !== userId) { return ({ error: unauthorizedUserError }); }
+
+  const result = await BlogPost.destroy({
+    where: { id: parseInt(postId, 10) },
+  });
+  if (!result) { return ({ error: { message: 'Database Error' } }); }
+
+  return false;
+};
+
 module.exports = {
   getAll,
   getById,
+  deleteById,
 };

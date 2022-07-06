@@ -1,4 +1,4 @@
-const postSchema = require('../schemas/postSchema');
+const { createPostSchema, updatePostSchema } = require('../schemas/postSchema');
 const { isInvalid } = require('../constants/statusCodeTypes');
 
 const invalidFieldsError = {
@@ -8,7 +8,15 @@ const invalidFieldsError = {
 
 const validatePost = (req, _res, next) => {
   const { title, content, categoryIds } = req.body;
-  const { error } = postSchema.validate({ title, content, categoryIds });
+  const { id } = req.params;
+
+  if (!id) {
+    const { error } = createPostSchema.validate({ title, content, categoryIds });
+    if (error) { return next(invalidFieldsError); }
+    return next();
+  }
+
+  const { error } = updatePostSchema.validate({ title, content });
   if (error) { return next(invalidFieldsError); }
 
   next();

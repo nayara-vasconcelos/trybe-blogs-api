@@ -1,9 +1,17 @@
 const Joi = require('joi');
 
-const postSchema = Joi.object({
+const createPostSchema = Joi.object({
   title: Joi.string().required(),
   content: Joi.string().required(),
   categoryIds: Joi.array().items(Joi.number().integer().min(1)).required(),
 });
 
-module.exports = postSchema;
+const updatePostSchema = Joi.object({
+  title: Joi.string().required(),
+  content: Joi.string().required(),
+});
+
+module.exports = {
+  createPostSchema,
+  updatePostSchema,
+};

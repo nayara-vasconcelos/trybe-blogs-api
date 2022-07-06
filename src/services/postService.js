@@ -88,9 +88,42 @@ const create = async (userId, title, content, categoryIds) => {
   }
 };
 
+const verifyPostUpdate = async (postId, userId) => {
+  const post = await BlogPost.findByPk(parseInt(postId, 10));
+
+  if (!post) { return ({ error: postNotFoundError }); }
+  if (post.userId !== userId) { return ({ error: unauthorizedUserError }); }
+
+  return false;
+};
+
+// Ref: https://stackoverflow.com/questions/28414395/how-to-update-with-sequelize-with-now-on-a-timestamp
+// Resposta do usuário "Arthur Mastropietro"
+const update = async (userId, postId, title, content) => {
+  const error = await verifyPostUpdate(postId, userId);
+  if (error) { return (error); }
+
+  const result = await BlogPost.update(
+    { title, content, updated: sequelize.literal('CURRENT_TIMESTAMP') },
+    { where: { id: parseInt(postId, 10) } },
+  );
+  if (!result) { return ({ error: { message: 'Database Error' } }); }
+
+  const updatedPost = await BlogPost.findOne({
+    where: { id: parseInt(postId, 10) },
+    include: [
+      { model: User, as: 'user', attributes: { exclude: ['password'] } },
+      { model: Category, as: 'categories', through: { attributes: [] } },
+    ],
+  });
+
+  return updatedPost;
+};
+
 module.exports = {
   getAll,
   getById,
   deleteById,
   create,
+  update,
 };

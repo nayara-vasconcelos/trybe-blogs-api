@@ -1,5 +1,10 @@
-const { BlogPost, User, Category } = require('../database/models');
-const { notFound, unauthorized } = require('../constants/statusCodeTypes');
+const Sequelize = require('sequelize');
+const config = require('../database/config/config');
+
+const { BlogPost, User, Category, PostCategory } = require('../database/models');
+const { notFound, unauthorized, isInvalid } = require('../constants/statusCodeTypes');
+
+const sequelize = new Sequelize(config.development);
 
 const postNotFoundError = {
   code: notFound,
@@ -9,6 +14,11 @@ const postNotFoundError = {
 const unauthorizedUserError = {
   code: unauthorized,
   message: 'Unauthorized user',
+};
+
+const invalidCategoryError = {
+  code: isInvalid,
+  message: '"categoryIds" not found',
 };
 
 const getAll = async () => {
@@ -49,8 +59,38 @@ const deleteById = async (postId, userId) => {
   return false;
 };
 
+const verifyCategories = async (categoryIds) => {
+  const categories = await Promise.all(categoryIds
+    .map((categoryId) => Category.findByPk(categoryId)));
+
+  const verifiedIds = categories.filter((existentCategory) => existentCategory !== null)
+    .map((category) => category.id);
+
+  return (verifiedIds);
+};
+
+const create = async (userId, title, content, categoryIds) => {
+  const verifiedCategoryIds = await verifyCategories(categoryIds);
+  if (verifiedCategoryIds.length === 0) { return ({ error: invalidCategoryError }); }
+  const t = await sequelize.transaction();
+  try {
+    const post = await BlogPost.create({ title, content, userId }, { transaction: t });
+    await Promise.all(
+      verifiedCategoryIds.map((categoryId) => (
+        PostCategory.create({ postId: post.id, categoryId }, { transaction: t })
+      )),
+    );
+    await t.commit();
+    return (post);
+  } catch (error) {
+    await t.rollback();
+    return ({ error: { message: 'Transaction Error' } });
+  }
+};
+
 module.exports = {
   getAll,
   getById,
   deleteById,
+  create,
 };

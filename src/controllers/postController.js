@@ -32,9 +32,20 @@ const create = async (req, res, next) => {
   return res.status(CREATED).json(post);
 };
 
+const update = async (req, res, next) => {
+  const { title, content } = req.body;
+  const postId = req.params.id;
+  const userId = req.user.id;
+  const post = await postService.update(userId, postId, title, content);
+  if (post.error) { return next(post.error); }
+
+  return res.status(OK).json(post);
+};
+
 module.exports = {
   getAll,
   getById,
   deleteById,
   create,
+  update,
 };

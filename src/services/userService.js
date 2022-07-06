@@ -77,9 +77,20 @@ const getById = async (userId) => {
   return (editedUser);
 };
 
+const deleteById = async (id) => {
+  const result = await User.destroy({
+    where: { id: parseInt(id, 10) },
+  });
+
+  if (!result) { return ({ error: userNotFoundError }); }
+  // Como invalidar token depois de deletar user?
+  return false;
+};
+
 module.exports = {
   verifyLogin,
   create,
   getAll,
   getById,
+  deleteById,
 };

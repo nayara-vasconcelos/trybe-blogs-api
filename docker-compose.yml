@@ -35,3 +35,5 @@ services:
 networks:
   default:
     name: blogs_api_net
+
+# Atenção: Esse arquivo é de autoria da Trybe.
